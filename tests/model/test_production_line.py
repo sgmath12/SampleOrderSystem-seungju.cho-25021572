@@ -38,14 +38,14 @@ def test_list_pending_preserves_fifo_order():
     assert pending[1].order is second_order
 
 
-def test_complete_next_adds_ceil_actual_quantity_to_inventory():
+def test_complete_next_adds_only_surplus_to_inventory():
     line = ProductionLine()
     sample = _sample(yield_rate=0.8, inventory=0)
     line.enqueue(_order(quantity=16), sample, shortfall=16)
 
     line.complete_next()
 
-    assert sample.inventory == 20
+    assert sample.inventory == 4
 
 
 def test_complete_next_sets_order_status_confirmed():
