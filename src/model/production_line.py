@@ -29,5 +29,6 @@ class ProductionLine:
 
     def complete_next(self) -> None:
         job = self._queue.popleft()
-        job.sample.inventory += job.actual_quantity
+        surplus = job.actual_quantity - job.shortfall
+        job.sample.inventory += surplus
         job.order.status = "CONFIRMED"

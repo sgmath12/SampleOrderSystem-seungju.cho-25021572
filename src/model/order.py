@@ -38,8 +38,9 @@ class OrderRepository:
             order.status = "CONFIRMED"
         else:
             order.status = "PRODUCING"
+            shortfall = order.quantity - sample.inventory
+            sample.inventory = 0
             if production_line is not None:
-                shortfall = order.quantity - sample.inventory
                 production_line.enqueue(order, sample, shortfall)
 
     def reject(self, order_id: int) -> None:
