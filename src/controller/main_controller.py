@@ -25,7 +25,13 @@ class MainController:
             if action is None:
                 self.view.show_message("잘못된 선택입니다.")
                 continue
+            self._safe_call(action)
+
+    def _safe_call(self, action):
+        try:
             action()
+        except ValueError as error:
+            self.view.show_message(f"오류: {error}")
 
     def _run_sample_menu(self):
         actions = {
@@ -42,7 +48,7 @@ class MainController:
             if action is None:
                 self.view.show_message("잘못된 선택입니다.")
                 continue
-            action()
+            self._safe_call(action)
 
     def _run_approval_menu(self):
         self.order_controller.list_reserved_orders()
@@ -54,7 +60,7 @@ class MainController:
         choice = self.view.read_menu_choice()
         action = actions.get(choice)
         if action is not None:
-            action()
+            self._safe_call(action)
 
     def _run_monitoring_menu(self):
         self.monitoring_controller.show_order_counts()
@@ -65,4 +71,4 @@ class MainController:
         self.view.show_message("[1] 생산 완료 처리  [0] 뒤로가기")
         choice = self.view.read_menu_choice()
         if choice == "1":
-            self.production_controller.complete_next()
+            self._safe_call(self.production_controller.complete_next)

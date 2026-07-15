@@ -28,6 +28,8 @@ class ProductionLine:
         return list(self._queue)
 
     def complete_next(self) -> None:
+        if not self._queue:
+            raise ValueError("대기 중인 생산 작업이 없습니다.")
         job = self._queue.popleft()
         surplus = job.actual_quantity - job.shortfall
         job.sample.inventory += surplus

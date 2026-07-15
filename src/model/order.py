@@ -16,6 +16,8 @@ class OrderRepository:
         self._next_id = 1
 
     def create(self, sample_repository, sample_id: str, customer: str, quantity: int) -> Order:
+        if quantity <= 0:
+            raise ValueError(f"주문 수량은 1 이상이어야 합니다: {quantity}")
         if sample_repository.find_by_id(sample_id) is None:
             raise ValueError(f"등록되지 않은 시료입니다: {sample_id}")
 
@@ -32,6 +34,8 @@ class OrderRepository:
 
     def approve(self, order_id: int, sample_repository, production_line=None) -> None:
         order = self._find_by_id(order_id)
+        if order.status != "RESERVED":
+            raise ValueError(f"RESERVED 상태의 주문만 승인/거절할 수 있습니다: {order.status}")
         sample = sample_repository.find_by_id(order.sample_id)
         if sample.inventory >= order.quantity:
             sample.inventory -= order.quantity
@@ -45,6 +49,8 @@ class OrderRepository:
 
     def reject(self, order_id: int) -> None:
         order = self._find_by_id(order_id)
+        if order.status != "RESERVED":
+            raise ValueError(f"RESERVED 상태의 주문만 승인/거절할 수 있습니다: {order.status}")
         order.status = "REJECTED"
 
     def release(self, order_id: int) -> None:
@@ -54,4 +60,7 @@ class OrderRepository:
         order.status = "RELEASE"
 
     def _find_by_id(self, order_id: int) -> Order:
-        return next(order for order in self._orders if order.order_id == order_id)
+        order = next((order for order in self._orders if order.order_id == order_id), None)
+        if order is None:
+            raise ValueError(f"존재하지 않는 주문입니다: {order_id}")
+        return order
