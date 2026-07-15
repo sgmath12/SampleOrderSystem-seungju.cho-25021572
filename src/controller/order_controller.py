@@ -10,19 +10,18 @@ class OrderController:
         order = self.order_repository.create(self.sample_repository, sample_id, customer, quantity)
         self.view.show_message(f"주문 접수 완료: {order.order_id}")
 
-    def approve_order(self):
+    def review_order(self):
         order = self._select_order(self.order_repository.list_reserved(), "승인 대기 중인 주문이 없습니다.")
         if order is None:
             return
-        self.order_repository.approve(order.order_id, self.sample_repository, self.production_line)
-        self.view.show_message(f"주문 승인 처리 완료: {order.order_id}")
-
-    def reject_order(self):
-        order = self._select_order(self.order_repository.list_reserved(), "승인 대기 중인 주문이 없습니다.")
-        if order is None:
-            return
-        self.order_repository.reject(order.order_id)
-        self.view.show_message(f"주문 거절 완료: {order.order_id}")
+        self.view.show_message("[1] 승인   [2] 거절   [0] 취소")
+        decision = self.view.read_menu_choice()
+        if decision == "1":
+            self.order_repository.approve(order.order_id, self.sample_repository, self.production_line)
+            self.view.show_message(f"주문 승인 처리 완료: {order.order_id}")
+        elif decision == "2":
+            self.order_repository.reject(order.order_id)
+            self.view.show_message(f"주문 거절 완료: {order.order_id}")
 
     def release_order(self):
         order = self._select_order(self.order_repository.list_confirmed(), "출고 가능한 주문이 없습니다.")

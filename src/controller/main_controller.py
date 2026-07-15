@@ -10,7 +10,7 @@ class MainController:
         top_level_actions = {
             "1": self._run_sample_menu,
             "2": self.order_controller.place_order,
-            "3": self._run_approval_menu,
+            "3": self.order_controller.review_order,
             "4": self._run_monitoring_menu,
             "5": self._run_production_menu,
             "6": self.order_controller.release_order,
@@ -50,17 +50,6 @@ class MainController:
             if action is None:
                 self.view.show_message("잘못된 선택입니다.")
                 continue
-            self._safe_call(action)
-
-    def _run_approval_menu(self):
-        actions = {
-            "1": self.order_controller.approve_order,
-            "2": self.order_controller.reject_order,
-        }
-        self.view.show_message("[1] 승인  [2] 거절  [0] 뒤로가기")
-        choice = self.view.read_menu_choice()
-        action = actions.get(choice)
-        if action is not None:
             self._safe_call(action)
 
     def _run_monitoring_menu(self):

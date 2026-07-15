@@ -61,8 +61,8 @@ class ConsoleView:
     def read_sample_registration(self):
         sample_id = input("시료 ID > ").strip()
         name = input("이름 > ").strip()
-        avg_production_time = int(input("평균 생산시간 > ").strip())
-        yield_rate = float(input("수율 > ").strip())
+        avg_production_time = int(input("평균 생산시간(분 단위 정수, 예: 30) > ").strip())
+        yield_rate = float(input("수율(0~1 사이 소수, 예: 0.9) > ").strip())
         return sample_id, name, avg_production_time, yield_rate
 
     def read_search_keyword(self):
@@ -87,7 +87,7 @@ class ConsoleView:
     def read_order_placement(self):
         sample_id = input("시료 ID > ").strip()
         customer = input("고객명 > ").strip()
-        quantity = int(input("주문 수량 > ").strip())
+        quantity = int(input("주문 수량(ea 단위 정수) > ").strip())
         return sample_id, customer, quantity
 
     def show_orders_numbered(self, orders):

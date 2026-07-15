@@ -5,9 +5,10 @@ from model.sample import SampleRepository
 
 
 class FakeOrderView:
-    def __init__(self, placement=None, selection_number=None):
+    def __init__(self, placement=None, selection_number=None, decision=None):
         self._placement = placement
         self._selection_number = selection_number
+        self._decision = decision
         self.shown_numbered_orders = None
         self.release_confirmation = None
         self.messages = []
@@ -20,6 +21,9 @@ class FakeOrderView:
 
     def read_selection_number(self):
         return self._selection_number
+
+    def read_menu_choice(self):
+        return self._decision
 
     def show_release_confirmation(self, order):
         self.release_confirmation = order
@@ -52,30 +56,56 @@ def test_place_order_creates_reserved_order():
     assert orders[0].status == "RESERVED"
 
 
-def test_approve_order_selects_by_number_and_delegates_to_order_repository():
+def test_review_order_shows_list_before_asking_decision():
     sample_repository = _sample_repository_with_stock(inventory=100)
     order_repository = OrderRepository()
     production_line = ProductionLine()
     order = order_repository.create(sample_repository, sample_id="S-001", customer="삼성전자", quantity=10)
-    view = FakeOrderView(selection_number=1)
+    view = FakeOrderView(selection_number=1, decision="1")
     controller = OrderController(order_repository, sample_repository, production_line, view)
 
-    controller.approve_order()
+    controller.review_order()
+
+    assert view.shown_numbered_orders == [order]
+
+
+def test_review_order_approves_when_decision_is_1():
+    sample_repository = _sample_repository_with_stock(inventory=100)
+    order_repository = OrderRepository()
+    production_line = ProductionLine()
+    order = order_repository.create(sample_repository, sample_id="S-001", customer="삼성전자", quantity=10)
+    view = FakeOrderView(selection_number=1, decision="1")
+    controller = OrderController(order_repository, sample_repository, production_line, view)
+
+    controller.review_order()
 
     assert order.status == "CONFIRMED"
 
 
-def test_reject_order_selects_by_number_and_delegates_to_order_repository():
+def test_review_order_rejects_when_decision_is_2():
     sample_repository = _sample_repository_with_stock()
     order_repository = OrderRepository()
     production_line = ProductionLine()
     order = order_repository.create(sample_repository, sample_id="S-001", customer="삼성전자", quantity=10)
-    view = FakeOrderView(selection_number=1)
+    view = FakeOrderView(selection_number=1, decision="2")
     controller = OrderController(order_repository, sample_repository, production_line, view)
 
-    controller.reject_order()
+    controller.review_order()
 
     assert order.status == "REJECTED"
+
+
+def test_review_order_leaves_order_reserved_when_decision_is_cancelled():
+    sample_repository = _sample_repository_with_stock()
+    order_repository = OrderRepository()
+    production_line = ProductionLine()
+    order = order_repository.create(sample_repository, sample_id="S-001", customer="삼성전자", quantity=10)
+    view = FakeOrderView(selection_number=1, decision="0")
+    controller = OrderController(order_repository, sample_repository, production_line, view)
+
+    controller.review_order()
+
+    assert order.status == "RESERVED"
 
 
 def test_release_order_selects_by_number_and_delegates_to_order_repository():
@@ -93,19 +123,19 @@ def test_release_order_selects_by_number_and_delegates_to_order_repository():
     assert view.release_confirmation is order
 
 
-def test_approve_order_shows_message_when_no_reserved_orders():
+def test_review_order_shows_message_when_no_reserved_orders():
     sample_repository = _sample_repository_with_stock()
     order_repository = OrderRepository()
     production_line = ProductionLine()
     view = FakeOrderView()
     controller = OrderController(order_repository, sample_repository, production_line, view)
 
-    controller.approve_order()
+    controller.review_order()
 
     assert "없습니다" in view.messages[0]
 
 
-def test_approve_order_shows_message_for_out_of_range_selection():
+def test_review_order_shows_message_for_out_of_range_selection():
     sample_repository = _sample_repository_with_stock(inventory=100)
     order_repository = OrderRepository()
     production_line = ProductionLine()
@@ -113,6 +143,6 @@ def test_approve_order_shows_message_for_out_of_range_selection():
     view = FakeOrderView(selection_number=99)
     controller = OrderController(order_repository, sample_repository, production_line, view)
 
-    controller.approve_order()
+    controller.review_order()
 
     assert "잘못된 번호" in view.messages[0]
