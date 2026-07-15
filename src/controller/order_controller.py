@@ -17,7 +17,11 @@ class OrderController:
         self.view.show_message(f"주문 접수 완료: {order.order_id}")
 
     def review_order(self):
-        order = self._select_order(self.order_repository.list_reserved(), "승인 대기 중인 주문이 없습니다.")
+        order = self._select_order(
+            self.order_repository.list_reserved(),
+            "승인 대기 중인 주문이 없습니다.",
+            "[승인/거절 대기 중인 주문 목록입니다. 처리할 주문 번호를 선택해주세요.]",
+        )
         if order is None:
             return
         self.view.show_message("[1] 승인   [2] 거절   [0] 취소")
@@ -30,16 +34,21 @@ class OrderController:
             self.view.show_message(f"주문 거절 완료: {order.order_id}")
 
     def release_order(self):
-        order = self._select_order(self.order_repository.list_confirmed(), "출고 가능한 주문이 없습니다.")
+        order = self._select_order(
+            self.order_repository.list_confirmed(),
+            "출고 가능한 주문이 없습니다.",
+            "[출고 가능한 주문 목록(CONFIRMED)입니다. 출고할 주문 번호를 선택해주세요.]",
+        )
         if order is None:
             return
         self.order_repository.release(order.order_id)
         self.view.show_release_confirmation(order)
 
-    def _select_order(self, candidates, empty_message):
+    def _select_order(self, candidates, empty_message, list_message):
         if not candidates:
             self.view.show_message(empty_message)
             return None
+        self.view.show_message(list_message)
         index = self.view.select_order_number(candidates)
         if index is None or not (1 <= index <= len(candidates)):
             self.view.show_message("잘못된 번호입니다.")

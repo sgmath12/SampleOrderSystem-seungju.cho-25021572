@@ -55,6 +55,8 @@ class MainController:
     def _run_monitoring_menu(self):
         self.monitoring_controller.show_order_counts()
         self.monitoring_controller.show_inventory_status()
+        self.view.show_message("\n메인 메뉴로 돌아가려면 Enter를 누르세요.")
+        self.view.read_menu_choice()
 
     def _run_production_menu(self):
         self.production_controller.show_pending()

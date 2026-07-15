@@ -172,4 +172,4 @@ def test_review_order_shows_message_for_out_of_range_selection():
 
     controller.review_order()
 
-    assert "잘못된 번호" in view.messages[0]
+    assert "잘못된 번호" in view.messages[-1]

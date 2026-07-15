@@ -2,7 +2,7 @@ import time
 from datetime import datetime
 
 from model.production_line import estimated_completion_at, progress_percent
-from view.colors import pad_badge
+from view.colors import pad_badge, rainbow_lines
 
 TITLE = "반도체 시료 생산주문관리 시스템"
 DIVIDER = "=" * 60
@@ -37,7 +37,7 @@ class ConsoleView:
         width = _display_width(TITLE) + 4
         print("\n" + DIVIDER)
         if not self._logo_shown:
-            print(LOGO)
+            print(rainbow_lines(LOGO))
             print("┌" + "─" * width + "┐")
             print("│" + _center(TITLE, width) + "│")
             print("└" + "─" * width + "┘")
