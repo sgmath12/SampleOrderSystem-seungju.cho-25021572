@@ -5,6 +5,7 @@ from model.production_line import estimated_completion_at, progress_percent
 from view.colors import pad_badge
 
 TITLE = "반도체 시료 생산주문관리 시스템"
+DIVIDER = "=" * 60
 
 LOGO = r"""
   ____        ____                  _
@@ -30,6 +31,7 @@ def _center(text, width):
 class ConsoleView:
     def show_main_menu(self, summary):
         width = _display_width(TITLE) + 4
+        print("\n" + DIVIDER)
         print(LOGO)
         print("┌" + "─" * width + "┐")
         print("│" + _center(TITLE, width) + "│")
@@ -52,7 +54,8 @@ class ConsoleView:
         return input("선택 > ").strip()
 
     def show_sample_menu(self):
-        print("\n----- 시료 관리 -----")
+        print("\n" + DIVIDER)
+        print("----- 시료 관리 -----")
         print("[1] 시료 등록")
         print("[2] 시료 조회")
         print("[3] 시료 검색")
@@ -69,6 +72,7 @@ class ConsoleView:
         return input("검색어(이름) > ").strip()
 
     def show_samples(self, samples):
+        print("\n" + DIVIDER)
         if not samples:
             print("표시할 시료가 없습니다.")
             return
@@ -91,6 +95,7 @@ class ConsoleView:
         return sample_id, customer, quantity
 
     def show_orders_numbered(self, orders):
+        print("\n" + DIVIDER)
         print(f"{'번호':<6}{'주문번호':<20}{'고객명':<15}{'시료ID':<10}{'수량':<8}{'상태':<12}")
         for index, order in enumerate(orders, start=1):
             print(
@@ -102,7 +107,8 @@ class ConsoleView:
         return int(input("번호 > ").strip())
 
     def show_release_confirmation(self, order):
-        print("\n출고 처리 완료.\n")
+        print("\n" + DIVIDER)
+        print("출고 처리 완료.\n")
         print(f"주문번호   {order.order_id}")
         print(f"출고수량   {order.quantity} ea")
         print(f"처리일시   {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -111,6 +117,7 @@ class ConsoleView:
     # ----- 생산라인 -----
 
     def show_production_jobs(self, jobs):
+        print("\n" + DIVIDER)
         if not jobs:
             print("대기 중인 생산 작업이 없습니다.")
             return
@@ -145,6 +152,8 @@ class ConsoleView:
     # ----- 모니터링 -----
 
     def show_order_counts(self, counts):
+        print("\n" + DIVIDER)
+        print("----- 모니터링 -----")
         if not counts:
             print("집계할 주문이 없습니다.")
             return

@@ -9,12 +9,16 @@ class FakeOrderView:
         self._placement = placement
         self._selection_number = selection_number
         self._decision = decision
+        self.shown_samples = None
         self.shown_numbered_orders = None
         self.release_confirmation = None
         self.messages = []
 
     def read_order_placement(self):
         return self._placement
+
+    def show_samples(self, samples):
+        self.shown_samples = samples
 
     def show_orders_numbered(self, orders):
         self.shown_numbered_orders = orders
@@ -54,6 +58,31 @@ def test_place_order_creates_reserved_order():
     assert orders[0].customer == "삼성전자"
     assert orders[0].quantity == 10
     assert orders[0].status == "RESERVED"
+
+
+def test_place_order_shows_registered_samples_before_reading_input():
+    sample_repository = _sample_repository_with_stock()
+    order_repository = OrderRepository()
+    production_line = ProductionLine()
+    view = FakeOrderView(placement=("S-001", "삼성전자", 10))
+    controller = OrderController(order_repository, sample_repository, production_line, view)
+
+    controller.place_order()
+
+    assert view.shown_samples == sample_repository.list_all()
+
+
+def test_place_order_aborts_when_no_samples_registered():
+    sample_repository = SampleRepository()
+    order_repository = OrderRepository()
+    production_line = ProductionLine()
+    view = FakeOrderView(placement=("S-001", "삼성전자", 10))
+    controller = OrderController(order_repository, sample_repository, production_line, view)
+
+    controller.place_order()
+
+    assert order_repository.list_all() == []
+    assert "등록된 시료가 없습니다" in view.messages[0]
 
 
 def test_review_order_shows_list_before_asking_decision():

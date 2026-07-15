@@ -6,6 +6,11 @@ class OrderController:
         self.view = view
 
     def place_order(self):
+        samples = self.sample_repository.list_all()
+        if not samples:
+            self.view.show_message("등록된 시료가 없습니다. 먼저 시료를 등록해주세요.")
+            return
+        self.view.show_samples(samples)
         sample_id, customer, quantity = self.view.read_order_placement()
         order = self.order_repository.create(self.sample_repository, sample_id, customer, quantity)
         self.view.show_message(f"주문 접수 완료: {order.order_id}")
