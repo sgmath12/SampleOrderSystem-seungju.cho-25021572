@@ -197,3 +197,62 @@ def test_release_raises_when_order_not_confirmed():
 
     with pytest.raises(ValueError):
         order_repository.release(order.order_id)
+
+
+@pytest.mark.parametrize("quantity", [0, -5])
+def test_create_raises_for_non_positive_quantity(quantity):
+    sample_repository = _repo_with_registered_sample()
+    order_repository = OrderRepository()
+
+    with pytest.raises(ValueError):
+        order_repository.create(
+            sample_repository, sample_id="S-001", customer="삼성전자", quantity=quantity
+        )
+
+
+def test_approve_raises_when_order_not_reserved():
+    sample_repository = _repo_with_registered_sample()
+    sample_repository.find_by_id("S-001").inventory = 100
+    order_repository = OrderRepository()
+    order = order_repository.create(
+        sample_repository, sample_id="S-001", customer="삼성전자", quantity=60
+    )
+    order_repository.approve(order.order_id, sample_repository)
+
+    with pytest.raises(ValueError):
+        order_repository.approve(order.order_id, sample_repository)
+
+
+def test_reject_raises_when_order_not_reserved():
+    sample_repository = _repo_with_registered_sample()
+    sample_repository.find_by_id("S-001").inventory = 100
+    order_repository = OrderRepository()
+    order = order_repository.create(
+        sample_repository, sample_id="S-001", customer="삼성전자", quantity=60
+    )
+    order_repository.approve(order.order_id, sample_repository)
+
+    with pytest.raises(ValueError):
+        order_repository.reject(order.order_id)
+
+
+def test_approve_raises_for_unknown_order_id():
+    sample_repository = _repo_with_registered_sample()
+    order_repository = OrderRepository()
+
+    with pytest.raises(ValueError):
+        order_repository.approve(999, sample_repository)
+
+
+def test_reject_raises_for_unknown_order_id():
+    order_repository = OrderRepository()
+
+    with pytest.raises(ValueError):
+        order_repository.reject(999)
+
+
+def test_release_raises_for_unknown_order_id():
+    order_repository = OrderRepository()
+
+    with pytest.raises(ValueError):
+        order_repository.release(999)

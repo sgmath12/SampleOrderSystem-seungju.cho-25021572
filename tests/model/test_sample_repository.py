@@ -1,3 +1,5 @@
+import pytest
+
 from model.sample import SampleRepository
 
 
@@ -71,3 +73,11 @@ def test_find_by_id_returns_none_when_not_found():
     repo = SampleRepository()
 
     assert repo.find_by_id("UNKNOWN") is None
+
+
+@pytest.mark.parametrize("yield_rate", [0, -0.1, 1.5])
+def test_register_raises_for_out_of_range_yield_rate(yield_rate):
+    repo = SampleRepository()
+
+    with pytest.raises(ValueError):
+        repo.register(sample_id="S-001", name="실리콘 웨이퍼-8인치", avg_production_time=30, yield_rate=yield_rate)

@@ -1,3 +1,5 @@
+import pytest
+
 from model.order import Order
 from model.production_line import ProductionLine
 from model.sample import Sample
@@ -88,3 +90,10 @@ def test_enqueue_computes_production_time_immediately():
 
     job = line.list_pending()[0]
     assert job.production_time == 200
+
+
+def test_complete_next_raises_when_queue_empty():
+    line = ProductionLine()
+
+    with pytest.raises(ValueError):
+        line.complete_next()
