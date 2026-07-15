@@ -281,6 +281,20 @@ def test_create_order_id_increments_sequence_same_day():
     assert second.order_id == "ORD-20260416-0002"
 
 
+def test_create_order_id_resets_sequence_on_new_date():
+    sample_repository = _repo_with_registered_sample()
+    dates = [datetime(2026, 4, 16), datetime(2026, 4, 16), datetime(2026, 4, 17)]
+    order_repository = OrderRepository(clock=lambda: dates.pop(0))
+
+    first = order_repository.create(sample_repository, sample_id="S-001", customer="A", quantity=1)
+    second = order_repository.create(sample_repository, sample_id="S-001", customer="B", quantity=1)
+    third = order_repository.create(sample_repository, sample_id="S-001", customer="C", quantity=1)
+
+    assert first.order_id == "ORD-20260416-0001"
+    assert second.order_id == "ORD-20260416-0002"
+    assert third.order_id == "ORD-20260417-0001"
+
+
 def test_list_confirmed_returns_only_confirmed_orders():
     sample_repository = _repo_with_registered_sample()
     sample_repository.find_by_id("S-001").inventory = 100
