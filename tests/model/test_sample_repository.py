@@ -81,3 +81,21 @@ def test_register_raises_for_out_of_range_yield_rate(yield_rate):
 
     with pytest.raises(ValueError):
         repo.register(sample_id="S-001", name="실리콘 웨이퍼-8인치", avg_production_time=30, yield_rate=yield_rate)
+
+
+@pytest.mark.parametrize("avg_production_time", [0, -5, -0.1])
+def test_register_raises_for_non_positive_avg_production_time(avg_production_time):
+    repo = SampleRepository()
+
+    with pytest.raises(ValueError):
+        repo.register(
+            sample_id="S-001", name="실리콘 웨이퍼-8인치", avg_production_time=avg_production_time, yield_rate=0.9
+        )
+
+
+def test_register_raises_for_duplicate_sample_id():
+    repo = SampleRepository()
+    repo.register(sample_id="S-001", name="실리콘 웨이퍼-8인치", avg_production_time=30, yield_rate=0.9)
+
+    with pytest.raises(ValueError):
+        repo.register(sample_id="S-001", name="다른 이름", avg_production_time=45, yield_rate=0.8)
