@@ -132,11 +132,17 @@ class ConsoleView:
                 print("  ".join(nav))
 
             choice = input("번호 > ").strip()
-            if choice.upper() == "N" and has_next:
-                page += 1
+            if choice.upper() == "N":
+                if has_next:
+                    page += 1
+                else:
+                    print("이미 마지막 페이지입니다.")
                 continue
-            if choice.upper() == "P" and has_prev:
-                page -= 1
+            if choice.upper() == "P":
+                if has_prev:
+                    page -= 1
+                else:
+                    print("이미 첫 페이지입니다.")
                 continue
             try:
                 return int(choice)
@@ -196,6 +202,8 @@ class ConsoleView:
                     msvcrt.getch()
                     break
                 time.sleep(refresh_interval)
+        except KeyboardInterrupt:
+            pass
         finally:
             print()
 
