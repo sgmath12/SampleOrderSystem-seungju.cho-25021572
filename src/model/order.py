@@ -14,7 +14,7 @@ class Order:
 class OrderRepository:
     def __init__(self, clock=datetime.now):
         self._orders = []
-        self._next_id = 1
+        self._sequence_by_date = {}
         self._clock = clock
 
     def create(self, sample_repository, sample_id: str, customer: str, quantity: int) -> Order:
@@ -24,10 +24,11 @@ class OrderRepository:
             raise ValueError(f"등록되지 않은 시료입니다: {sample_id}")
 
         date_str = self._clock().strftime("%Y%m%d")
-        order_id = f"ORD-{date_str}-{self._next_id:04d}"
+        sequence = self._sequence_by_date.get(date_str, 0) + 1
+        self._sequence_by_date[date_str] = sequence
+        order_id = f"ORD-{date_str}-{sequence:04d}"
         order = Order(order_id, sample_id, customer, quantity)
         self._orders.append(order)
-        self._next_id += 1
         return order
 
     def list_all(self):
