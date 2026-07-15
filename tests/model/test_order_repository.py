@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 
 from model.order import OrderRepository
@@ -256,3 +258,42 @@ def test_release_raises_for_unknown_order_id():
 
     with pytest.raises(ValueError):
         order_repository.release(999)
+
+
+def test_create_order_id_uses_date_and_sequence_format():
+    sample_repository = _repo_with_registered_sample()
+    order_repository = OrderRepository(clock=lambda: datetime(2026, 4, 16))
+
+    order = order_repository.create(
+        sample_repository, sample_id="S-001", customer="삼성전자", quantity=10
+    )
+
+    assert order.order_id == "ORD-20260416-0001"
+
+
+def test_create_order_id_increments_sequence_same_day():
+    sample_repository = _repo_with_registered_sample()
+    order_repository = OrderRepository(clock=lambda: datetime(2026, 4, 16))
+
+    order_repository.create(sample_repository, sample_id="S-001", customer="삼성전자", quantity=10)
+    second = order_repository.create(sample_repository, sample_id="S-001", customer="SK하이닉스", quantity=5)
+
+    assert second.order_id == "ORD-20260416-0002"
+
+
+def test_list_confirmed_returns_only_confirmed_orders():
+    sample_repository = _repo_with_registered_sample()
+    sample_repository.find_by_id("S-001").inventory = 100
+    order_repository = OrderRepository()
+    confirmed = order_repository.create(
+        sample_repository, sample_id="S-001", customer="삼성전자", quantity=10
+    )
+    still_reserved = order_repository.create(
+        sample_repository, sample_id="S-001", customer="SK하이닉스", quantity=10
+    )
+    order_repository.approve(confirmed.order_id, sample_repository)
+
+    result = order_repository.list_confirmed()
+
+    assert result == [confirmed]
+    assert still_reserved not in result
