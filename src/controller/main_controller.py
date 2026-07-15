@@ -1,19 +1,31 @@
 class MainController:
-    def __init__(self, view, sample_controller):
+    def __init__(self, view, sample_controller, order_controller, production_controller, monitoring_controller):
         self.view = view
         self.sample_controller = sample_controller
+        self.order_controller = order_controller
+        self.production_controller = production_controller
+        self.monitoring_controller = monitoring_controller
 
     def run(self):
+        top_level_actions = {
+            "1": self._run_sample_menu,
+            "2": self.order_controller.place_order,
+            "3": self._run_approval_menu,
+            "4": self._run_monitoring_menu,
+            "5": self._run_production_menu,
+            "6": self.order_controller.release_order,
+        }
         while True:
             self.view.show_main_menu()
             choice = self.view.read_menu_choice()
             if choice == "0":
                 self.view.show_message("종료합니다.")
                 break
-            if choice == "1":
-                self._run_sample_menu()
-            else:
+            action = top_level_actions.get(choice)
+            if action is None:
                 self.view.show_message("잘못된 선택입니다.")
+                continue
+            action()
 
     def _run_sample_menu(self):
         actions = {
@@ -31,3 +43,26 @@ class MainController:
                 self.view.show_message("잘못된 선택입니다.")
                 continue
             action()
+
+    def _run_approval_menu(self):
+        self.order_controller.list_reserved_orders()
+        actions = {
+            "1": self.order_controller.approve_order,
+            "2": self.order_controller.reject_order,
+        }
+        self.view.show_message("[1] 승인  [2] 거절  [0] 뒤로가기")
+        choice = self.view.read_menu_choice()
+        action = actions.get(choice)
+        if action is not None:
+            action()
+
+    def _run_monitoring_menu(self):
+        self.monitoring_controller.show_order_counts()
+        self.monitoring_controller.show_inventory_status()
+
+    def _run_production_menu(self):
+        self.production_controller.show_pending()
+        self.view.show_message("[1] 생산 완료 처리  [0] 뒤로가기")
+        choice = self.view.read_menu_choice()
+        if choice == "1":
+            self.production_controller.complete_next()

@@ -1,7 +1,12 @@
-class SampleView:
+class ConsoleView:
     def show_main_menu(self):
         print("\n===== 반도체 시료 생산주문관리 시스템 =====")
         print("[1] 시료 관리")
+        print("[2] 시료 주문")
+        print("[3] 주문 승인/거절")
+        print("[4] 모니터링")
+        print("[5] 생산라인")
+        print("[6] 출고 처리")
         print("[0] 종료")
 
     def read_menu_choice(self):
@@ -40,3 +45,55 @@ class SampleView:
 
     def show_message(self, message):
         print(message)
+
+    # ----- 시료 주문 / 승인 / 거절 / 출고 -----
+
+    def read_order_placement(self):
+        sample_id = input("시료 ID > ").strip()
+        customer = input("고객명 > ").strip()
+        quantity = int(input("주문 수량 > ").strip())
+        return sample_id, customer, quantity
+
+    def read_order_id(self):
+        return int(input("주문 ID > ").strip())
+
+    def show_orders(self, orders):
+        if not orders:
+            print("표시할 주문이 없습니다.")
+            return
+        print(f"{'ID':<6}{'시료ID':<10}{'고객명':<15}{'수량':<8}{'상태':<12}")
+        for order in orders:
+            print(
+                f"{order.order_id:<6}{order.sample_id:<10}{order.customer:<15}"
+                f"{order.quantity:<8}{order.status:<12}"
+            )
+
+    # ----- 생산라인 -----
+
+    def show_production_jobs(self, jobs):
+        if not jobs:
+            print("대기 중인 생산 작업이 없습니다.")
+            return
+        print(f"{'주문ID':<8}{'시료ID':<10}{'부족분':<8}{'실생산량':<10}{'총생산시간':<10}")
+        for job in jobs:
+            print(
+                f"{job.order.order_id:<8}{job.sample.sample_id:<10}{job.shortfall:<8}"
+                f"{job.actual_quantity:<10}{job.production_time:<10}"
+            )
+
+    # ----- 모니터링 -----
+
+    def show_order_counts(self, counts):
+        if not counts:
+            print("집계할 주문이 없습니다.")
+            return
+        for status, count in counts.items():
+            print(f"{status:<12}{count}건")
+
+    def show_inventory_status(self, statuses):
+        if not statuses:
+            print("등록된 시료가 없습니다.")
+            return
+        print(f"{'시료ID':<10}{'이름':<20}{'재고':<8}{'상태':<8}")
+        for sample, status in statuses:
+            print(f"{sample.sample_id:<10}{sample.name:<20}{sample.inventory:<8}{status:<8}")
