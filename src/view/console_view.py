@@ -30,13 +30,20 @@ def _center(text, width):
 
 
 class ConsoleView:
+    def __init__(self):
+        self._logo_shown = False
+
     def show_main_menu(self, summary):
         width = _display_width(TITLE) + 4
         print("\n" + DIVIDER)
-        print(LOGO)
-        print("┌" + "─" * width + "┐")
-        print("│" + _center(TITLE, width) + "│")
-        print("└" + "─" * width + "┘")
+        if not self._logo_shown:
+            print(LOGO)
+            print("┌" + "─" * width + "┐")
+            print("│" + _center(TITLE, width) + "│")
+            print("└" + "─" * width + "┘")
+            self._logo_shown = True
+        else:
+            print(TITLE)
         print(f"시스템 현황  {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(
             f"등록 시료 {summary['sample_count']}종   총 재고 {summary['total_inventory']:,} ea   "
