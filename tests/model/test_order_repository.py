@@ -1,6 +1,7 @@
 import pytest
 
 from model.order import OrderRepository
+from model.production_line import ProductionLine
 from model.sample import SampleRepository
 
 
@@ -123,3 +124,34 @@ def test_list_reserved_returns_only_reserved_orders():
     reserved = order_repository.list_reserved()
 
     assert reserved == [still_reserved]
+
+
+def test_approve_enqueues_job_to_production_line_when_insufficient():
+    sample_repository = _repo_with_registered_sample()
+    sample_repository.find_by_id("S-001").inventory = 10
+    order_repository = OrderRepository()
+    production_line = ProductionLine()
+    order = order_repository.create(
+        sample_repository, sample_id="S-001", customer="삼성전자", quantity=60
+    )
+
+    order_repository.approve(order.order_id, sample_repository, production_line)
+
+    pending = production_line.list_pending()
+    assert len(pending) == 1
+    assert pending[0].order is order
+    assert pending[0].shortfall == 50
+
+
+def test_approve_does_not_enqueue_when_inventory_sufficient():
+    sample_repository = _repo_with_registered_sample()
+    sample_repository.find_by_id("S-001").inventory = 100
+    order_repository = OrderRepository()
+    production_line = ProductionLine()
+    order = order_repository.create(
+        sample_repository, sample_id="S-001", customer="삼성전자", quantity=60
+    )
+
+    order_repository.approve(order.order_id, sample_repository, production_line)
+
+    assert production_line.list_pending() == []

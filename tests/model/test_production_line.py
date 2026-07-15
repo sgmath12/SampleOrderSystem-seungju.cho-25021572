@@ -70,3 +70,21 @@ def test_complete_next_removes_job_from_pending_queue():
     pending = line.list_pending()
     assert len(pending) == 1
     assert pending[0].order is second_order
+
+
+def test_enqueue_computes_actual_quantity_immediately():
+    line = ProductionLine()
+
+    line.enqueue(_order(quantity=16), _sample(yield_rate=0.8), shortfall=16)
+
+    job = line.list_pending()[0]
+    assert job.actual_quantity == 20
+
+
+def test_enqueue_computes_production_time_immediately():
+    line = ProductionLine()
+
+    line.enqueue(_order(quantity=16), _sample(yield_rate=0.8, avg_production_time=10), shortfall=16)
+
+    job = line.list_pending()[0]
+    assert job.production_time == 200
