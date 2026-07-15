@@ -35,7 +35,7 @@ class MainController:
         }
         while True:
             self.view.show_sample_menu()
-            choice = self.view.read_sample_menu_choice()
+            choice = self.view.read_menu_choice()
             if choice == "0":
                 break
             action = actions.get(choice)

@@ -19,9 +19,6 @@ class ConsoleView:
         print("[3] 시료 검색")
         print("[0] 뒤로가기")
 
-    def read_sample_menu_choice(self):
-        return input("선택 > ").strip()
-
     def read_sample_registration(self):
         sample_id = input("시료 ID > ").strip()
         name = input("이름 > ").strip()
