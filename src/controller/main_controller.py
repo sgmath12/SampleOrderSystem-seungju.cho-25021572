@@ -29,6 +29,7 @@ class MainController:
                 self.view.show_message("잘못된 선택입니다.")
                 self.view.pause()
                 continue
+            self.view.clear_screen()
             self._safe_call(action)
             self.view.pause()
 
@@ -45,6 +46,7 @@ class MainController:
             "3": self.sample_controller.search_samples,
         }
         while True:
+            self.view.clear_screen()
             self.view.show_sample_menu()
             choice = self.view.read_menu_choice()
             if choice == "0":
@@ -52,8 +54,10 @@ class MainController:
             action = actions.get(choice)
             if action is None:
                 self.view.show_message("잘못된 선택입니다.")
+                self.view.pause()
                 continue
             self._safe_call(action)
+            self.view.pause()
 
     def _run_monitoring_menu(self):
         self.monitoring_controller.show_order_counts()
