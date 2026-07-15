@@ -1,5 +1,5 @@
 ---
-name: test-driven-development
+name: tdd
 description: 모든 기능 구현이나 버그 수정 시, 구현 코드를 작성하기 전에 사용할 것
 ---
 
