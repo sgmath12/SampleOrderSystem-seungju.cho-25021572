@@ -60,7 +60,9 @@ class MainController:
 
     def _run_production_menu(self):
         self.production_controller.show_pending()
-        self.view.show_message("[1] 생산 완료 처리  [0] 뒤로가기")
+        self.view.show_message("[1] 생산 완료 처리   [2] 실시간 진행률 보기   [0] 뒤로가기")
         choice = self.view.read_menu_choice()
         if choice == "1":
             self._safe_call(self.production_controller.complete_next)
+        elif choice == "2":
+            self._safe_call(self.production_controller.watch_progress)

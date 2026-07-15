@@ -12,6 +12,9 @@ class FakeProductionView:
     def show_production_jobs(self, jobs):
         self.shown_jobs = jobs
 
+    def watch_current_progress(self, job):
+        self.watched_job = job
+
     def show_message(self, message):
         self.messages.append(message)
 
@@ -55,3 +58,24 @@ def test_count_pending_returns_number_of_queued_jobs():
     controller = ProductionController(production_line, view)
 
     assert controller.count_pending() == 1
+
+
+def test_watch_progress_delegates_current_job_to_view():
+    production_line = ProductionLine()
+    production_line.enqueue(_order(), _sample(), shortfall=16)
+    view = FakeProductionView()
+    controller = ProductionController(production_line, view)
+
+    controller.watch_progress()
+
+    assert view.watched_job == production_line.list_pending()[0]
+
+
+def test_watch_progress_shows_message_when_no_jobs_pending():
+    production_line = ProductionLine()
+    view = FakeProductionView()
+    controller = ProductionController(production_line, view)
+
+    controller.watch_progress()
+
+    assert "없습니다" in view.messages[0]

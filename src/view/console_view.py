@@ -1,8 +1,15 @@
+import os
+import sys
 import time
 from datetime import datetime
 
 from model.production_line import estimated_completion_at, progress_percent
 from view.colors import pad_badge, rainbow_lines
+
+if os.name == "nt":
+    import msvcrt
+else:
+    msvcrt = None
 
 TITLE = "반도체 시료 생산주문관리 시스템"
 DIVIDER = "=" * 60
@@ -154,12 +161,7 @@ class ConsoleView:
             print("대기 중인 생산 작업이 없습니다.")
             return
 
-        now = time.time()
         current = jobs[0]
-        percent = progress_percent(current, now)
-        bar_width = 20
-        filled = int(bar_width * percent / 100)
-        bar = "█" * filled + "░" * (bar_width - filled)
         eta = datetime.fromtimestamp(estimated_completion_at(current)).strftime("%H:%M")
 
         print("\n----- 현재 처리 중 -----")
@@ -168,7 +170,32 @@ class ConsoleView:
             f"주문량 {current.order.quantity}ea   부족 {current.shortfall}ea   "
             f"실생산량 {current.actual_quantity}ea (수율 {current.sample.yield_rate} / {current.production_time:.0f}min)"
         )
-        print(f"진행 {bar} {percent:.0f}%   완료 예정 {eta}")
+        print(f"{self._progress_bar_line(current, time.time())}   완료 예정 {eta}")
+
+    def watch_current_progress(self, job, duration_seconds=60, refresh_interval=0.5):
+        print("\n" + DIVIDER)
+        print("실시간 진행률 (아무 키나 누르면 중단)")
+        started = time.time()
+        try:
+            while time.time() - started < duration_seconds:
+                percent = progress_percent(job, time.time())
+                sys.stdout.write("\r" + self._progress_bar_line(job, time.time()) + "   ")
+                sys.stdout.flush()
+                if percent >= 100:
+                    break
+                if msvcrt is not None and msvcrt.kbhit():
+                    msvcrt.getch()
+                    break
+                time.sleep(refresh_interval)
+        finally:
+            print()
+
+    def _progress_bar_line(self, job, now):
+        percent = progress_percent(job, now)
+        bar_width = 20
+        filled = int(bar_width * percent / 100)
+        bar = "█" * filled + "░" * (bar_width - filled)
+        return f"진행 {bar} {percent:.1f}%"
 
         waiting = jobs[1:]
         if waiting:
