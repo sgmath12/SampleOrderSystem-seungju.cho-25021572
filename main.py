@@ -14,10 +14,26 @@ from model.sample import SampleRepository
 from view.console_view import ConsoleView
 
 
+def _enable_windows_ansi():
+    import ctypes
+
+    STD_OUTPUT_HANDLE = -11
+    ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
+
+    kernel32 = ctypes.windll.kernel32
+    handle = kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
+    mode = ctypes.c_uint32()
+    if not kernel32.GetConsoleMode(handle, ctypes.byref(mode)):
+        return
+    kernel32.SetConsoleMode(handle, mode.value | ENABLE_VIRTUAL_TERMINAL_PROCESSING)
+
+
 def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
         sys.stdin.reconfigure(encoding="utf-8")
+    if os.name == "nt":
+        _enable_windows_ansi()
 
     sample_repository = SampleRepository()
     order_repository = OrderRepository()

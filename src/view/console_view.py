@@ -1,6 +1,25 @@
+from view.colors import pad_badge
+
+TITLE = "반도체 시료 생산주문관리 시스템"
+
+
+def _display_width(text):
+    return sum(2 if ord(ch) > 0x1100 else 1 for ch in text)
+
+
+def _center(text, width):
+    padding = max(0, width - _display_width(text))
+    left = padding // 2
+    right = padding - left
+    return " " * left + text + " " * right
+
+
 class ConsoleView:
     def show_main_menu(self):
-        print("\n===== 반도체 시료 생산주문관리 시스템 =====")
+        width = _display_width(TITLE) + 4
+        print("\n┌" + "─" * width + "┐")
+        print("│" + _center(TITLE, width) + "│")
+        print("└" + "─" * width + "┘")
         print("[1] 시료 관리")
         print("[2] 시료 주문")
         print("[3] 주문 승인/거절")
@@ -62,7 +81,7 @@ class ConsoleView:
         for order in orders:
             print(
                 f"{order.order_id:<6}{order.sample_id:<10}{order.customer:<15}"
-                f"{order.quantity:<8}{order.status:<12}"
+                f"{order.quantity:<8}{pad_badge(order.status, 12)}"
             )
 
     # ----- 생산라인 -----
@@ -85,7 +104,7 @@ class ConsoleView:
             print("집계할 주문이 없습니다.")
             return
         for status, count in counts.items():
-            print(f"{status:<12}{count}건")
+            print(f"{pad_badge(status, 12)}{count}건")
 
     def show_inventory_status(self, statuses):
         if not statuses:
@@ -93,4 +112,4 @@ class ConsoleView:
             return
         print(f"{'시료ID':<10}{'이름':<20}{'재고':<8}{'상태':<8}")
         for sample, status in statuses:
-            print(f"{sample.sample_id:<10}{sample.name:<20}{sample.inventory:<8}{status:<8}")
+            print(f"{sample.sample_id:<10}{sample.name:<20}{sample.inventory:<8}{pad_badge(status, 8)}")
