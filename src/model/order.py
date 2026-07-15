@@ -1,9 +1,10 @@
 from dataclasses import dataclass
+from datetime import datetime
 
 
 @dataclass
 class Order:
-    order_id: int
+    order_id: str
     sample_id: str
     customer: str
     quantity: int
@@ -11,9 +12,10 @@ class Order:
 
 
 class OrderRepository:
-    def __init__(self):
+    def __init__(self, clock=datetime.now):
         self._orders = []
         self._next_id = 1
+        self._clock = clock
 
     def create(self, sample_repository, sample_id: str, customer: str, quantity: int) -> Order:
         if quantity <= 0:
@@ -21,7 +23,9 @@ class OrderRepository:
         if sample_repository.find_by_id(sample_id) is None:
             raise ValueError(f"등록되지 않은 시료입니다: {sample_id}")
 
-        order = Order(self._next_id, sample_id, customer, quantity)
+        date_str = self._clock().strftime("%Y%m%d")
+        order_id = f"ORD-{date_str}-{self._next_id:04d}"
+        order = Order(order_id, sample_id, customer, quantity)
         self._orders.append(order)
         self._next_id += 1
         return order
@@ -32,7 +36,10 @@ class OrderRepository:
     def list_reserved(self):
         return [order for order in self._orders if order.status == "RESERVED"]
 
-    def approve(self, order_id: int, sample_repository, production_line=None) -> None:
+    def list_confirmed(self):
+        return [order for order in self._orders if order.status == "CONFIRMED"]
+
+    def approve(self, order_id: str, sample_repository, production_line=None) -> None:
         order = self._find_by_id(order_id)
         if order.status != "RESERVED":
             raise ValueError(f"RESERVED 상태의 주문만 승인/거절할 수 있습니다: {order.status}")
@@ -47,19 +54,19 @@ class OrderRepository:
             if production_line is not None:
                 production_line.enqueue(order, sample, shortfall)
 
-    def reject(self, order_id: int) -> None:
+    def reject(self, order_id: str) -> None:
         order = self._find_by_id(order_id)
         if order.status != "RESERVED":
             raise ValueError(f"RESERVED 상태의 주문만 승인/거절할 수 있습니다: {order.status}")
         order.status = "REJECTED"
 
-    def release(self, order_id: int) -> None:
+    def release(self, order_id: str) -> None:
         order = self._find_by_id(order_id)
         if order.status != "CONFIRMED":
             raise ValueError(f"CONFIRMED 상태의 주문만 출고할 수 있습니다: {order.status}")
         order.status = "RELEASE"
 
-    def _find_by_id(self, order_id: int) -> Order:
+    def _find_by_id(self, order_id: str) -> Order:
         order = next((order for order in self._orders if order.order_id == order_id), None)
         if order is None:
             raise ValueError(f"존재하지 않는 주문입니다: {order_id}")
