@@ -6,6 +6,7 @@ from view.colors import pad_badge
 
 TITLE = "반도체 시료 생산주문관리 시스템"
 DIVIDER = "=" * 60
+ORDER_PAGE_SIZE = 10
 
 LOGO = r"""
   ____        ____                  _
@@ -94,17 +95,41 @@ class ConsoleView:
         quantity = int(input("주문 수량(ea 단위 정수) > ").strip())
         return sample_id, customer, quantity
 
-    def show_orders_numbered(self, orders):
-        print("\n" + DIVIDER)
-        print(f"{'번호':<6}{'주문번호':<20}{'고객명':<15}{'시료ID':<10}{'수량':<8}{'상태':<12}")
-        for index, order in enumerate(orders, start=1):
-            print(
-                f"[{index}]{'':<3}{order.order_id:<20}{order.customer:<15}{order.sample_id:<10}"
-                f"{order.quantity:<8}{pad_badge(order.status, 12)}"
-            )
+    def select_order_number(self, orders):
+        page = 0
+        while True:
+            start = page * ORDER_PAGE_SIZE
+            chunk = orders[start : start + ORDER_PAGE_SIZE]
+            has_next = start + ORDER_PAGE_SIZE < len(orders)
+            has_prev = page > 0
 
-    def read_selection_number(self):
-        return int(input("번호 > ").strip())
+            print("\n" + DIVIDER)
+            print(f"{'번호':<6}{'주문번호':<20}{'고객명':<15}{'시료ID':<10}{'수량':<8}{'상태':<12}")
+            for offset, order in enumerate(chunk, start=1):
+                index = start + offset
+                print(
+                    f"[{index}]{'':<3}{order.order_id:<20}{order.customer:<15}{order.sample_id:<10}"
+                    f"{order.quantity:<8}{pad_badge(order.status, 12)}"
+                )
+            if has_next or has_prev:
+                nav = []
+                if has_next:
+                    nav.append("[N] 다음 페이지")
+                if has_prev:
+                    nav.append("[P] 이전 페이지")
+                print("  ".join(nav))
+
+            choice = input("번호 > ").strip()
+            if choice.upper() == "N" and has_next:
+                page += 1
+                continue
+            if choice.upper() == "P" and has_prev:
+                page -= 1
+                continue
+            try:
+                return int(choice)
+            except ValueError:
+                return None
 
     def show_release_confirmation(self, order):
         print("\n" + DIVIDER)

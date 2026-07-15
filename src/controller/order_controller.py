@@ -39,9 +39,8 @@ class OrderController:
         if not candidates:
             self.view.show_message(empty_message)
             return None
-        self.view.show_orders_numbered(candidates)
-        index = self.view.read_selection_number()
-        if not (1 <= index <= len(candidates)):
+        index = self.view.select_order_number(candidates)
+        if index is None or not (1 <= index <= len(candidates)):
             self.view.show_message("잘못된 번호입니다.")
             return None
         return candidates[index - 1]

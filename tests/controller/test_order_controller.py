@@ -20,10 +20,8 @@ class FakeOrderView:
     def show_samples(self, samples):
         self.shown_samples = samples
 
-    def show_orders_numbered(self, orders):
+    def select_order_number(self, orders):
         self.shown_numbered_orders = orders
-
-    def read_selection_number(self):
         return self._selection_number
 
     def read_menu_choice(self):
