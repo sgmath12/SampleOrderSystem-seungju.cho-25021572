@@ -46,3 +46,12 @@ def test_complete_next_advances_production_queue():
 
     assert order.status == "CONFIRMED"
     assert production_line.list_pending() == []
+
+
+def test_count_pending_returns_number_of_queued_jobs():
+    production_line = ProductionLine()
+    production_line.enqueue(_order(), _sample(), shortfall=16)
+    view = FakeProductionView()
+    controller = ProductionController(production_line, view)
+
+    assert controller.count_pending() == 1

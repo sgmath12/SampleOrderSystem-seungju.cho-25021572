@@ -1,4 +1,5 @@
 import math
+import time
 from collections import deque
 from dataclasses import dataclass
 
@@ -13,16 +14,21 @@ class ProductionJob:
     shortfall: int
     actual_quantity: int
     production_time: float
+    started_at: float
 
 
 class ProductionLine:
-    def __init__(self):
+    def __init__(self, clock=time.time):
         self._queue = deque()
+        self._clock = clock
 
     def enqueue(self, order: Order, sample: Sample, shortfall: int) -> None:
         actual_quantity = math.ceil(shortfall / sample.yield_rate)
         production_time = sample.avg_production_time * actual_quantity
-        self._queue.append(ProductionJob(order, sample, shortfall, actual_quantity, production_time))
+        started_at = self._clock()
+        self._queue.append(
+            ProductionJob(order, sample, shortfall, actual_quantity, production_time, started_at)
+        )
 
     def list_pending(self):
         return list(self._queue)
@@ -34,3 +40,15 @@ class ProductionLine:
         surplus = job.actual_quantity - job.shortfall
         job.sample.inventory += surplus
         job.order.status = "CONFIRMED"
+
+
+def progress_percent(job: ProductionJob, now: float) -> float:
+    total_seconds = job.production_time * 60
+    if total_seconds <= 0:
+        return 100.0
+    elapsed = now - job.started_at
+    return max(0.0, min(100.0, elapsed / total_seconds * 100))
+
+
+def estimated_completion_at(job: ProductionJob) -> float:
+    return job.started_at + job.production_time * 60

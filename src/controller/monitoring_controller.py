@@ -18,3 +18,11 @@ class MonitoringController:
             for sample in self.sample_repository.list_all()
         ]
         self.view.show_inventory_status(statuses)
+
+    def system_summary(self):
+        samples = self.sample_repository.list_all()
+        return {
+            "sample_count": len(samples),
+            "total_inventory": sum(sample.inventory for sample in samples),
+            "order_count": len(self.order_repository.list_all()),
+        }

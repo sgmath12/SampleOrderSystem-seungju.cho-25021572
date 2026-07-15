@@ -9,3 +9,6 @@ class ProductionController:
     def complete_next(self):
         self.production_line.complete_next()
         self.view.show_message("생산 완료 처리되었습니다.")
+
+    def count_pending(self):
+        return len(self.production_line.list_pending())

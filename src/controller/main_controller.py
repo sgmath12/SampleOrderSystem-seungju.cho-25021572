@@ -16,7 +16,9 @@ class MainController:
             "6": self.order_controller.release_order,
         }
         while True:
-            self.view.show_main_menu()
+            summary = self.monitoring_controller.system_summary()
+            summary["pending_production"] = self.production_controller.count_pending()
+            self.view.show_main_menu(summary)
             choice = self.view.read_menu_choice()
             if choice == "0":
                 self.view.show_message("종료합니다.")
@@ -51,7 +53,6 @@ class MainController:
             self._safe_call(action)
 
     def _run_approval_menu(self):
-        self.order_controller.list_reserved_orders()
         actions = {
             "1": self.order_controller.approve_order,
             "2": self.order_controller.reject_order,

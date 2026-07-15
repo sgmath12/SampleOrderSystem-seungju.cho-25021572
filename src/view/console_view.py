@@ -1,6 +1,19 @@
+import time
+from datetime import datetime
+
+from model.production_line import estimated_completion_at, progress_percent
 from view.colors import pad_badge
 
 TITLE = "반도체 시료 생산주문관리 시스템"
+
+LOGO = r"""
+  ____        ____                  _
+ / ___|      / ___|  ___ _ __ ___  (_)
+ \___ \ ___  \___ \ / _ \ '_ ` _ \ | |
+  ___) |___|  ___) |  __/ | | | | || |
+ |____/     |____/ \___|_| |_| |_|/ |
+                                 |__/
+"""
 
 
 def _display_width(text):
@@ -15,11 +28,18 @@ def _center(text, width):
 
 
 class ConsoleView:
-    def show_main_menu(self):
+    def show_main_menu(self, summary):
         width = _display_width(TITLE) + 4
-        print("\n┌" + "─" * width + "┐")
+        print(LOGO)
+        print("┌" + "─" * width + "┐")
         print("│" + _center(TITLE, width) + "│")
         print("└" + "─" * width + "┘")
+        print(f"시스템 현황  {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(
+            f"등록 시료 {summary['sample_count']}종   총 재고 {summary['total_inventory']:,} ea   "
+            f"전체 주문 {summary['order_count']}건   생산라인 {summary['pending_production']}건 대기"
+        )
+        print("-" * width)
         print("[1] 시료 관리")
         print("[2] 시료 주문")
         print("[3] 주문 승인/거절")
@@ -70,19 +90,23 @@ class ConsoleView:
         quantity = int(input("주문 수량 > ").strip())
         return sample_id, customer, quantity
 
-    def read_order_id(self):
-        return int(input("주문 ID > ").strip())
-
-    def show_orders(self, orders):
-        if not orders:
-            print("표시할 주문이 없습니다.")
-            return
-        print(f"{'ID':<6}{'시료ID':<10}{'고객명':<15}{'수량':<8}{'상태':<12}")
-        for order in orders:
+    def show_orders_numbered(self, orders):
+        print(f"{'번호':<6}{'주문번호':<20}{'고객명':<15}{'시료ID':<10}{'수량':<8}{'상태':<12}")
+        for index, order in enumerate(orders, start=1):
             print(
-                f"{order.order_id:<6}{order.sample_id:<10}{order.customer:<15}"
+                f"[{index}]{'':<3}{order.order_id:<20}{order.customer:<15}{order.sample_id:<10}"
                 f"{order.quantity:<8}{pad_badge(order.status, 12)}"
             )
+
+    def read_selection_number(self):
+        return int(input("번호 > ").strip())
+
+    def show_release_confirmation(self, order):
+        print("\n출고 처리 완료.\n")
+        print(f"주문번호   {order.order_id}")
+        print(f"출고수량   {order.quantity} ea")
+        print(f"처리일시   {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"상태       CONFIRMED → {pad_badge('RELEASE', 0)}")
 
     # ----- 생산라인 -----
 
@@ -90,12 +114,33 @@ class ConsoleView:
         if not jobs:
             print("대기 중인 생산 작업이 없습니다.")
             return
-        print(f"{'주문ID':<8}{'시료ID':<10}{'부족분':<8}{'실생산량':<10}{'총생산시간':<10}")
-        for job in jobs:
-            print(
-                f"{job.order.order_id:<8}{job.sample.sample_id:<10}{job.shortfall:<8}"
-                f"{job.actual_quantity:<10}{job.production_time:<10}"
-            )
+
+        now = time.time()
+        current = jobs[0]
+        percent = progress_percent(current, now)
+        bar_width = 20
+        filled = int(bar_width * percent / 100)
+        bar = "█" * filled + "░" * (bar_width - filled)
+        eta = datetime.fromtimestamp(estimated_completion_at(current)).strftime("%H:%M")
+
+        print("\n----- 현재 처리 중 -----")
+        print(f"주문번호 {current.order.order_id}   시료 {current.sample.name}")
+        print(
+            f"주문량 {current.order.quantity}ea   부족 {current.shortfall}ea   "
+            f"실생산량 {current.actual_quantity}ea (수율 {current.sample.yield_rate} / {current.production_time:.0f}min)"
+        )
+        print(f"진행 {bar} {percent:.0f}%   완료 예정 {eta}")
+
+        waiting = jobs[1:]
+        if waiting:
+            print("\n----- 대기 중인 주문 (FIFO 순) -----")
+            print(f"{'순서':<6}{'주문번호':<20}{'시료ID':<10}{'주문량':<8}{'부족분':<8}{'실생산량':<10}{'예상완료':<8}")
+            for order_index, job in enumerate(waiting, start=1):
+                job_eta = datetime.fromtimestamp(estimated_completion_at(job)).strftime("%H:%M")
+                print(
+                    f"{order_index:<6}{job.order.order_id:<20}{job.sample.sample_id:<10}"
+                    f"{job.order.quantity:<8}{job.shortfall:<8}{job.actual_quantity:<10}{job_eta:<8}"
+                )
 
     # ----- 모니터링 -----
 
