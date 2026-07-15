@@ -12,7 +12,7 @@
 핵심은 "장시간 실행돼도 목표를 이탈하지 않게 막는 장치"이지, 테스트 인프라가 아니다. 이 프로젝트는 M0~M8 + 여러 버그수정 사이클을 거치는 긴 세션 동안 아래 두 가지로 이탈을 막았다.
 
 - **Plan 단위 쪼개기 + 승인 게이트**: 매 사이클을 `plan_N.md`(plan_1~12) 하나의 좁은 목표로 한정하고, 다음 사이클로 넘어가기 전 항상 사람 파트너의 승인을 받았다. 세션이 길어져도 "지금 뭘 하고 있었는지"를 매번 Plan 문서로 다시 고정했다.
-- **주기적 서브에이전트 재점검으로 드리프트 탐지**: 세션 중반(`4eafa55`)과 UI를 크게 재설계한 후반(`reports/subagent-review-2026-07-15-1313.md`) 두 시점에 doc-checker/bug-hunter를 재실행해, 오래 진행하면서 방법론 문서와 실제 커밋 관행이 벌어진 지점(RED 커밋만 남고 GREEN은 fast-fix로 우회된 것, README의 clear 설명이 최신 동작과 안 맞는 것)을 스스로 발견해 되돌아볼 수 있었다. 이런 점검 없이 계속 진행했다면 문서-코드 불일치가 세션 끝까지 누적됐을 것.
+- **주기적 서브에이전트 재점검으로 드리프트 탐지**: 세션 중반(`4eafa55`)과 UI를 크게 재설계한 후반(`sub-agents-reports/subagent-review-2026-07-15-1313.md`) 두 시점에 doc-checker/bug-hunter를 재실행해, 오래 진행하면서 방법론 문서와 실제 커밋 관행이 벌어진 지점(RED 커밋만 남고 GREEN은 fast-fix로 우회된 것, README의 clear 설명이 최신 동작과 안 맞는 것)을 스스로 발견해 되돌아볼 수 있었다. 이런 점검 없이 계속 진행했다면 문서-코드 불일치가 세션 끝까지 누적됐을 것.
 
 ## 3. Test — TDD Red-Green-Review
 
@@ -23,7 +23,7 @@
 ## 4. Clean Code
 
 - 코드 중복 발견 시 즉시 정리 (`8cf4cdc` 중복 메서드 제거, `68654e3` 상태 검증 가드 헬퍼 추출).
-- **서브에이전트 활용**: `.claude/agents/doc-checker.md`(문서-코드 정합성), `bug-hunter.md`(엣지케이스), `refactor-expert.md`(리팩터링) 3개를 정의하고, doc-checker+bug-hunter를 **병렬로 2회 실행**했다. 결과는 `reports/subagent-review-2026-07-15-1230.md`, `-1313.md`에 저장. 1차 실행에서 재고 예약 버그·예외 미처리 등을, 2차 실행(UI 재설계 후 재점검)에서 시료 중복등록 허용·평균생산시간 음수 미검증(치명적 2건) 등을 발견했고, 전부 RED-GREEN 사이클로 수정 (`8aa36fd`→`a3c7239`, `46190cc`→`d59186b`). refactor-expert는 리팩터링 전후 pytest 79개 통과를 확인하며 `order.py` 중복 제거를 수행 (`68654e3`).
+- **서브에이전트 활용**: `.claude/agents/doc-checker.md`(문서-코드 정합성), `bug-hunter.md`(엣지케이스), `refactor-expert.md`(리팩터링) 3개를 정의하고, doc-checker+bug-hunter를 **병렬로 2회 실행**했다. 결과는 `sub-agents-reports/subagent-review-2026-07-15-1230.md`, `-1313.md`에 저장. 1차 실행에서 재고 예약 버그·예외 미처리 등을, 2차 실행(UI 재설계 후 재점검)에서 시료 중복등록 허용·평균생산시간 음수 미검증(치명적 2건) 등을 발견했고, 전부 RED-GREEN 사이클로 수정 (`8aa36fd`→`a3c7239`, `46190cc`→`d59186b`). refactor-expert는 리팩터링 전후 pytest 79개 통과를 확인하며 `order.py` 중복 제거를 수행 (`68654e3`).
 
 ## 5. Commit 이력
 

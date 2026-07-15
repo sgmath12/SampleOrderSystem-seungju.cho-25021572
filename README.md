@@ -46,7 +46,7 @@ SampleOrderSystem/
     view/                  콘솔 입출력 (ConsoleView) 전담
   tests/                  pytest 테스트 (model, controller)
   plan/                   TDD 사이클별 계획 문서 (전체플랜.md, plan_1.md~)
-  reports/                서브에이전트(doc-checker/bug-hunter) 리뷰 리포트
+  sub-agents-reports/     서브에이전트(doc-checker/bug-hunter/refactor-expert) 리뷰 리포트
   docs/                   원본 과제 요구사항 (PDF, 페이지 이미지, 설명.md)
   CLAUDE.md               개발 방법론(오케스트레이션) — 요구사항은 다루지 않음
   PRD.md                  제품 요구사항 문서 (기능 명세, 도메인 규칙, 수율 계산 예시 등)
