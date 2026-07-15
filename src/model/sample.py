@@ -21,3 +21,6 @@ class SampleRepository:
 
     def list_all(self):
         return list(self._samples)
+
+    def search_by_name(self, keyword: str):
+        return [sample for sample in self._samples if keyword in sample.name]
