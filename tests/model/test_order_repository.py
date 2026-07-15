@@ -172,3 +172,28 @@ def test_new_order_cannot_consume_inventory_reserved_by_pending_order():
     order_repository.approve(order_b.order_id, sample_repository)
 
     assert order_b.status == "PRODUCING"
+
+
+def test_release_sets_status_to_release_when_confirmed():
+    sample_repository = _repo_with_registered_sample()
+    sample_repository.find_by_id("S-001").inventory = 100
+    order_repository = OrderRepository()
+    order = order_repository.create(
+        sample_repository, sample_id="S-001", customer="삼성전자", quantity=60
+    )
+    order_repository.approve(order.order_id, sample_repository)
+
+    order_repository.release(order.order_id)
+
+    assert order.status == "RELEASE"
+
+
+def test_release_raises_when_order_not_confirmed():
+    sample_repository = _repo_with_registered_sample()
+    order_repository = OrderRepository()
+    order = order_repository.create(
+        sample_repository, sample_id="S-001", customer="삼성전자", quantity=60
+    )
+
+    with pytest.raises(ValueError):
+        order_repository.release(order.order_id)
