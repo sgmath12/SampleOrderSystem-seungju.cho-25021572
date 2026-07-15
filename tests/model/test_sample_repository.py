@@ -38,3 +38,21 @@ def test_list_all_returns_empty_when_nothing_registered():
     repo = SampleRepository()
 
     assert repo.list_all() == []
+
+
+def test_search_by_name_returns_matching_samples():
+    repo = SampleRepository()
+    repo.register(sample_id="S-001", name="실리콘 웨이퍼-8인치", avg_production_time=30, yield_rate=0.9)
+    repo.register(sample_id="S-002", name="SiC 파워기판-6인치", avg_production_time=45, yield_rate=0.8)
+
+    results = repo.search_by_name("웨이퍼")
+
+    assert len(results) == 1
+    assert results[0].sample_id == "S-001"
+
+
+def test_search_by_name_returns_empty_when_no_match():
+    repo = SampleRepository()
+    repo.register(sample_id="S-001", name="실리콘 웨이퍼-8인치", avg_production_time=30, yield_rate=0.9)
+
+    assert repo.search_by_name("존재하지않는이름") == []
