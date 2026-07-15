@@ -11,6 +11,8 @@ class ProductionJob:
     order: Order
     sample: Sample
     shortfall: int
+    actual_quantity: int
+    production_time: float
 
 
 class ProductionLine:
@@ -18,13 +20,14 @@ class ProductionLine:
         self._queue = deque()
 
     def enqueue(self, order: Order, sample: Sample, shortfall: int) -> None:
-        self._queue.append(ProductionJob(order, sample, shortfall))
+        actual_quantity = math.ceil(shortfall / sample.yield_rate)
+        production_time = sample.avg_production_time * actual_quantity
+        self._queue.append(ProductionJob(order, sample, shortfall, actual_quantity, production_time))
 
     def list_pending(self):
         return list(self._queue)
 
     def complete_next(self) -> None:
         job = self._queue.popleft()
-        actual_quantity = math.ceil(job.shortfall / job.sample.yield_rate)
-        job.sample.inventory += actual_quantity
+        job.sample.inventory += job.actual_quantity
         job.order.status = "CONFIRMED"

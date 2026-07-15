@@ -30,7 +30,7 @@ class OrderRepository:
     def list_reserved(self):
         return [order for order in self._orders if order.status == "RESERVED"]
 
-    def approve(self, order_id: int, sample_repository) -> None:
+    def approve(self, order_id: int, sample_repository, production_line=None) -> None:
         order = self._find_by_id(order_id)
         sample = sample_repository.find_by_id(order.sample_id)
         if sample.inventory >= order.quantity:
@@ -38,6 +38,9 @@ class OrderRepository:
             order.status = "CONFIRMED"
         else:
             order.status = "PRODUCING"
+            if production_line is not None:
+                shortfall = order.quantity - sample.inventory
+                production_line.enqueue(order, sample, shortfall)
 
     def reject(self, order_id: int) -> None:
         order = self._find_by_id(order_id)
