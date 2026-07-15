@@ -1,7 +1,7 @@
 import pytest
 
 from model.order import Order
-from model.production_line import ProductionLine
+from model.production_line import ProductionLine, estimated_completion_at, progress_percent
 from model.sample import Sample
 
 
@@ -97,3 +97,46 @@ def test_complete_next_raises_when_queue_empty():
 
     with pytest.raises(ValueError):
         line.complete_next()
+
+
+def test_enqueue_records_started_at_using_clock():
+    line = ProductionLine(clock=lambda: 1000.0)
+
+    line.enqueue(_order(quantity=16), _sample(yield_rate=0.8, avg_production_time=10), shortfall=16)
+
+    job = line.list_pending()[0]
+    assert job.started_at == 1000.0
+
+
+def test_progress_percent_is_zero_right_after_start():
+    line = ProductionLine(clock=lambda: 1000.0)
+    line.enqueue(_order(quantity=16), _sample(yield_rate=0.8, avg_production_time=10), shortfall=16)
+    job = line.list_pending()[0]
+
+    assert progress_percent(job, now=1000.0) == 0
+
+
+def test_progress_percent_is_proportional_midway():
+    line = ProductionLine(clock=lambda: 1000.0)
+    line.enqueue(_order(quantity=16), _sample(yield_rate=0.8, avg_production_time=10), shortfall=16)
+    job = line.list_pending()[0]
+    total_seconds = job.production_time * 60
+
+    assert progress_percent(job, now=1000.0 + total_seconds / 2) == 50
+
+
+def test_progress_percent_is_capped_at_100():
+    line = ProductionLine(clock=lambda: 1000.0)
+    line.enqueue(_order(quantity=16), _sample(yield_rate=0.8, avg_production_time=10), shortfall=16)
+    job = line.list_pending()[0]
+    total_seconds = job.production_time * 60
+
+    assert progress_percent(job, now=1000.0 + total_seconds * 10) == 100
+
+
+def test_estimated_completion_at_adds_production_seconds_to_start():
+    line = ProductionLine(clock=lambda: 1000.0)
+    line.enqueue(_order(quantity=16), _sample(yield_rate=0.8, avg_production_time=10), shortfall=16)
+    job = line.list_pending()[0]
+
+    assert estimated_completion_at(job) == 1000.0 + job.production_time * 60
