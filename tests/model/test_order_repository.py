@@ -66,3 +66,60 @@ def test_list_all_returns_created_orders():
 
     orders = order_repository.list_all()
     assert len(orders) == 2
+
+
+def test_approve_confirms_order_and_deducts_inventory_when_sufficient():
+    sample_repository = _repo_with_registered_sample()
+    sample_repository.find_by_id("S-001").inventory = 100
+    order_repository = OrderRepository()
+    order = order_repository.create(
+        sample_repository, sample_id="S-001", customer="삼성전자", quantity=60
+    )
+
+    order_repository.approve(order.order_id, sample_repository)
+
+    assert order.status == "CONFIRMED"
+    assert sample_repository.find_by_id("S-001").inventory == 40
+
+
+def test_approve_sets_producing_and_keeps_inventory_when_insufficient():
+    sample_repository = _repo_with_registered_sample()
+    sample_repository.find_by_id("S-001").inventory = 10
+    order_repository = OrderRepository()
+    order = order_repository.create(
+        sample_repository, sample_id="S-001", customer="삼성전자", quantity=60
+    )
+
+    order_repository.approve(order.order_id, sample_repository)
+
+    assert order.status == "PRODUCING"
+    assert sample_repository.find_by_id("S-001").inventory == 10
+
+
+def test_reject_sets_status_to_rejected():
+    sample_repository = _repo_with_registered_sample()
+    order_repository = OrderRepository()
+    order = order_repository.create(
+        sample_repository, sample_id="S-001", customer="삼성전자", quantity=60
+    )
+
+    order_repository.reject(order.order_id)
+
+    assert order.status == "REJECTED"
+
+
+def test_list_reserved_returns_only_reserved_orders():
+    sample_repository = _repo_with_registered_sample()
+    sample_repository.find_by_id("S-001").inventory = 100
+    order_repository = OrderRepository()
+    confirmed = order_repository.create(
+        sample_repository, sample_id="S-001", customer="삼성전자", quantity=10
+    )
+    still_reserved = order_repository.create(
+        sample_repository, sample_id="S-001", customer="SK하이닉스", quantity=10
+    )
+    order_repository.approve(confirmed.order_id, sample_repository)
+
+    reserved = order_repository.list_reserved()
+
+    assert reserved == [still_reserved]

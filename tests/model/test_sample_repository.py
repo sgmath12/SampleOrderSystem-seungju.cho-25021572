@@ -56,3 +56,18 @@ def test_search_by_name_returns_empty_when_no_match():
     repo.register(sample_id="S-001", name="실리콘 웨이퍼-8인치", avg_production_time=30, yield_rate=0.9)
 
     assert repo.search_by_name("존재하지않는이름") == []
+
+
+def test_find_by_id_returns_matching_sample():
+    repo = SampleRepository()
+    repo.register(sample_id="S-001", name="실리콘 웨이퍼-8인치", avg_production_time=30, yield_rate=0.9)
+
+    found = repo.find_by_id("S-001")
+
+    assert found.sample_id == "S-001"
+
+
+def test_find_by_id_returns_none_when_not_found():
+    repo = SampleRepository()
+
+    assert repo.find_by_id("UNKNOWN") is None
