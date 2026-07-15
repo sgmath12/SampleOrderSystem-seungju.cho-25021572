@@ -47,5 +47,11 @@ class OrderRepository:
         order = self._find_by_id(order_id)
         order.status = "REJECTED"
 
+    def release(self, order_id: int) -> None:
+        order = self._find_by_id(order_id)
+        if order.status != "CONFIRMED":
+            raise ValueError(f"CONFIRMED 상태의 주문만 출고할 수 있습니다: {order.status}")
+        order.status = "RELEASE"
+
     def _find_by_id(self, order_id: int) -> Order:
         return next(order for order in self._orders if order.order_id == order_id)
