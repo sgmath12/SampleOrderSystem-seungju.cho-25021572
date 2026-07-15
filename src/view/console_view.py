@@ -37,20 +37,18 @@ def _center(text, width):
 
 
 class ConsoleView:
-    def __init__(self):
-        self._logo_shown = False
+    def clear_screen(self):
+        os.system("cls" if os.name == "nt" else "clear")
+
+    def pause(self):
+        input("\n계속하려면 Enter를 누르세요 > ")
 
     def show_main_menu(self, summary):
         width = _display_width(TITLE) + 4
-        print("\n" + DIVIDER)
-        if not self._logo_shown:
-            print(rainbow_lines(LOGO))
-            print("┌" + "─" * width + "┐")
-            print("│" + _center(TITLE, width) + "│")
-            print("└" + "─" * width + "┘")
-            self._logo_shown = True
-        else:
-            print(TITLE)
+        print(rainbow_lines(LOGO))
+        print("┌" + "─" * width + "┐")
+        print("│" + _center(TITLE, width) + "│")
+        print("└" + "─" * width + "┘")
         print(f"시스템 현황  {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(
             f"등록 시료 {summary['sample_count']}종   총 재고 {summary['total_inventory']:,} ea   "
@@ -172,6 +170,17 @@ class ConsoleView:
         )
         print(f"{self._progress_bar_line(current, time.time())}   완료 예정 {eta}")
 
+        waiting = jobs[1:]
+        if waiting:
+            print("\n----- 대기 중인 주문 (FIFO 순) -----")
+            print(f"{'순서':<6}{'주문번호':<20}{'시료ID':<10}{'주문량':<8}{'부족분':<8}{'실생산량':<10}{'예상완료':<8}")
+            for order_index, job in enumerate(waiting, start=1):
+                job_eta = datetime.fromtimestamp(estimated_completion_at(job)).strftime("%H:%M")
+                print(
+                    f"{order_index:<6}{job.order.order_id:<20}{job.sample.sample_id:<10}"
+                    f"{job.order.quantity:<8}{job.shortfall:<8}{job.actual_quantity:<10}{job_eta:<8}"
+                )
+
     def watch_current_progress(self, job, duration_seconds=60, refresh_interval=0.5):
         print("\n" + DIVIDER)
         print("실시간 진행률 (아무 키나 누르면 중단)")
@@ -196,17 +205,6 @@ class ConsoleView:
         filled = int(bar_width * percent / 100)
         bar = "█" * filled + "░" * (bar_width - filled)
         return f"진행 {bar} {percent:.1f}%"
-
-        waiting = jobs[1:]
-        if waiting:
-            print("\n----- 대기 중인 주문 (FIFO 순) -----")
-            print(f"{'순서':<6}{'주문번호':<20}{'시료ID':<10}{'주문량':<8}{'부족분':<8}{'실생산량':<10}{'예상완료':<8}")
-            for order_index, job in enumerate(waiting, start=1):
-                job_eta = datetime.fromtimestamp(estimated_completion_at(job)).strftime("%H:%M")
-                print(
-                    f"{order_index:<6}{job.order.order_id:<20}{job.sample.sample_id:<10}"
-                    f"{job.order.quantity:<8}{job.shortfall:<8}{job.actual_quantity:<10}{job_eta:<8}"
-                )
 
     # ----- 모니터링 -----
 

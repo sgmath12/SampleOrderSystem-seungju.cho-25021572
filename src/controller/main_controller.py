@@ -16,6 +16,7 @@ class MainController:
             "6": self.order_controller.release_order,
         }
         while True:
+            self.view.clear_screen()
             summary = self.monitoring_controller.system_summary()
             summary["pending_production"] = self.production_controller.count_pending()
             self.view.show_main_menu(summary)
@@ -26,8 +27,10 @@ class MainController:
             action = top_level_actions.get(choice)
             if action is None:
                 self.view.show_message("잘못된 선택입니다.")
+                self.view.pause()
                 continue
             self._safe_call(action)
+            self.view.pause()
 
     def _safe_call(self, action):
         try:
@@ -55,14 +58,12 @@ class MainController:
     def _run_monitoring_menu(self):
         self.monitoring_controller.show_order_counts()
         self.monitoring_controller.show_inventory_status()
-        self.view.show_message("\n메인 메뉴로 돌아가려면 Enter를 누르세요.")
-        self.view.read_menu_choice()
 
     def _run_production_menu(self):
         self.production_controller.show_pending()
-        self.view.show_message("[1] 생산 완료 처리   [2] 실시간 진행률 보기   [0] 뒤로가기")
+        if self.production_controller.count_pending() > 0:
+            self.production_controller.watch_progress()
+        self.view.show_message("[1] 생산 완료 처리   [0] 뒤로가기")
         choice = self.view.read_menu_choice()
         if choice == "1":
             self._safe_call(self.production_controller.complete_next)
-        elif choice == "2":
-            self._safe_call(self.production_controller.watch_progress)
