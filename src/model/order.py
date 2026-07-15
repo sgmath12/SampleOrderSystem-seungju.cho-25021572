@@ -42,8 +42,7 @@ class OrderRepository:
 
     def approve(self, order_id: str, sample_repository, production_line=None) -> None:
         order = self._find_by_id(order_id)
-        if order.status != "RESERVED":
-            raise ValueError(f"RESERVED 상태의 주문만 승인/거절할 수 있습니다: {order.status}")
+        self._ensure_reserved(order)
         sample = sample_repository.find_by_id(order.sample_id)
         if sample.inventory >= order.quantity:
             sample.inventory -= order.quantity
@@ -57,8 +56,7 @@ class OrderRepository:
 
     def reject(self, order_id: str) -> None:
         order = self._find_by_id(order_id)
-        if order.status != "RESERVED":
-            raise ValueError(f"RESERVED 상태의 주문만 승인/거절할 수 있습니다: {order.status}")
+        self._ensure_reserved(order)
         order.status = "REJECTED"
 
     def release(self, order_id: str) -> None:
@@ -66,6 +64,10 @@ class OrderRepository:
         if order.status != "CONFIRMED":
             raise ValueError(f"CONFIRMED 상태의 주문만 출고할 수 있습니다: {order.status}")
         order.status = "RELEASE"
+
+    def _ensure_reserved(self, order: Order) -> None:
+        if order.status != "RESERVED":
+            raise ValueError(f"RESERVED 상태의 주문만 승인/거절할 수 있습니다: {order.status}")
 
     def _find_by_id(self, order_id: str) -> Order:
         order = next((order for order in self._orders if order.order_id == order_id), None)
