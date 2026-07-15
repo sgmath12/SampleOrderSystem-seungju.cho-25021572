@@ -24,3 +24,6 @@ class SampleRepository:
 
     def search_by_name(self, keyword: str):
         return [sample for sample in self._samples if keyword in sample.name]
+
+    def find_by_id(self, sample_id: str):
+        return next((sample for sample in self._samples if sample.sample_id == sample_id), None)

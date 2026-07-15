@@ -16,8 +16,7 @@ class OrderRepository:
         self._next_id = 1
 
     def create(self, sample_repository, sample_id: str, customer: str, quantity: int) -> Order:
-        known_sample_ids = {sample.sample_id for sample in sample_repository.list_all()}
-        if sample_id not in known_sample_ids:
+        if sample_repository.find_by_id(sample_id) is None:
             raise ValueError(f"등록되지 않은 시료입니다: {sample_id}")
 
         order = Order(self._next_id, sample_id, customer, quantity)
@@ -27,3 +26,22 @@ class OrderRepository:
 
     def list_all(self):
         return list(self._orders)
+
+    def list_reserved(self):
+        return [order for order in self._orders if order.status == "RESERVED"]
+
+    def approve(self, order_id: int, sample_repository) -> None:
+        order = self._find_by_id(order_id)
+        sample = sample_repository.find_by_id(order.sample_id)
+        if sample.inventory >= order.quantity:
+            sample.inventory -= order.quantity
+            order.status = "CONFIRMED"
+        else:
+            order.status = "PRODUCING"
+
+    def reject(self, order_id: int) -> None:
+        order = self._find_by_id(order_id)
+        order.status = "REJECTED"
+
+    def _find_by_id(self, order_id: int) -> Order:
+        return next(order for order in self._orders if order.order_id == order_id)
