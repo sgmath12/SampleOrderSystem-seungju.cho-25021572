@@ -77,7 +77,7 @@ class ConsoleView:
     def read_sample_registration(self):
         sample_id = input("시료 ID > ").strip()
         name = input("이름 > ").strip()
-        avg_production_time = int(input("평균 생산시간(분 단위 정수, 예: 30) > ").strip())
+        avg_production_time = float(input("평균 생산시간(분 단위 숫자, 예: 30 또는 12.5) > ").strip())
         yield_rate = float(input("수율(0~1 사이 소수, 예: 0.9) > ").strip())
         return sample_id, name, avg_production_time, yield_rate
 

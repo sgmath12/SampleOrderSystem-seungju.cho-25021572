@@ -5,7 +5,7 @@ from dataclasses import dataclass
 class Sample:
     sample_id: str
     name: str
-    avg_production_time: int
+    avg_production_time: float
     yield_rate: float
     inventory: int = 0
 
@@ -14,7 +14,7 @@ class SampleRepository:
     def __init__(self):
         self._samples = []
 
-    def register(self, sample_id: str, name: str, avg_production_time: int, yield_rate: float) -> Sample:
+    def register(self, sample_id: str, name: str, avg_production_time: float, yield_rate: float) -> Sample:
         if not (0 < yield_rate <= 1):
             raise ValueError(f"수율은 0보다 크고 1 이하여야 합니다: {yield_rate}")
         sample = Sample(sample_id, name, avg_production_time, yield_rate)
